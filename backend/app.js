@@ -1,5 +1,6 @@
-const express = require('express')//?8.27...
+const express = require('express')
 const mongoose = require('mongoose')
+const redisClient = require('./utils/redisClient')
 require('dotenv').config()
 
 //! connect to mongodb
