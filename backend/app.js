@@ -31,6 +31,8 @@ app.post('/users/create', async (req, res) => {
     try {
         const { name, email } = req.body
         const user = await User.create({ name, email })
+        // Invalidate cache after creating a new user
+        await redisClient.del("allUsers")
         res.json(user)
     } catch (error) {
         res.send("Server error")
@@ -38,9 +40,9 @@ app.post('/users/create', async (req, res) => {
 })
 
 //! lists
-app.post('/users/lists', async (req, res) => {
+app.get('/users/lists', async (req, res) => {
     try {
-        //! check cache
+        // check cache
         const cacheKey = 'allUsers'
         const cachedUsers = await redisClient.get(cacheKey)
         if (cachedUsers) {
@@ -52,7 +54,7 @@ app.post('/users/lists', async (req, res) => {
         const users = await User.find()
         if (users.length) {
             await redisClient.set(cacheKey, JSON.stringify(users), 'EX', 3600) //cache for one hour
-            console.log('Cache miss - Users fetched from Mongodb');//4.42...
+            console.log('Cache miss - Users fetched from Mongodb');
             return res.json(users)
         }
     } catch (error) {
