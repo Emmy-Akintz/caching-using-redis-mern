@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 const mongoose = require('mongoose')
 const redisClient = require('./utils/redisClient')
 require('dotenv').config()
@@ -18,6 +19,11 @@ const userSchema = new mongoose.Schema({
     timestamps: true,
 })
 
+//! cors options
+const corsOptions = {
+    origin: ['http://localhost:5173']
+}
+
 //! User model
 const User = mongoose.model('User', userSchema)
 
@@ -25,6 +31,7 @@ const app = express()
 
 //! Middlewares
 app.use(express.json())
+app.use(cors(corsOptions))
 
 //! create user route
 app.post('/users/create', async (req, res) => {
