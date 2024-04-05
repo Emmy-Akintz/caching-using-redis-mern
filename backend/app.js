@@ -40,8 +40,21 @@ app.post('/users/create', async (req, res) => {
 //! lists
 app.post('/users/lists', async (req, res) => {
     try {
+        //! check cache
+        const cacheKey = 'allUsers'
+        const cachedUsers = await redisClient.get(cacheKey)
+        if (cachedUsers) {
+            console.log('Cache hit - Users fetched from redis');
+            return res.json({ users: JSON.parse(cachedUsers) })
+        }
+
+        //! cache miss: query mongodb
         const users = await User.find()
-        res.json(users)
+        if (users.length) {
+            await redisClient.set(cacheKey, JSON.stringify(users), 'EX', 3600) //cache for one hour
+            console.log('Cache miss - Users fetched from Mongodb');//4.42...
+            return res.json(users)
+        }
     } catch (error) {
         res.send("Server error")
     }
